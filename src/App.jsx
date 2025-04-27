@@ -9,7 +9,7 @@ function App() {
 
   useEffect(() => {
     setLoading(true)
-    fetch(`http://52.195.3.91:8080/repos?page=${page}&size=${pageSize}`)
+    fetch(`https://api.shuyu-lin.com/repos?page=${page}&size=${pageSize}`)
       .then((response) => response.json())
       .then((data) => {
         setRepos(data.content)
