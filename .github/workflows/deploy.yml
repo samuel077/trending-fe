@@ -1,0 +1,45 @@
+name: Deploy Frontend to S3 and Invalidate CloudFront
+
+on:
+  push:
+    branches:
+      - master  # 你可以改成你自己的主分支名稱（例如 master）
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20' # 可以改成你專案用的版本
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Build project
+      run: npm run build
+
+    - name: Upload to S3
+      uses: jakejarvis/s3-sync-action@master
+      with:
+        args: --acl public-read --delete
+      env:
+        AWS_S3_BUCKET: ${{ secrets.S3_BUCKET }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_REGION: ${{ secrets.AWS_REGION }}
+        SOURCE_DIR: 'dist' # 如果是 vite 可能是 dist，要看你的專案
+
+    - name: Invalidate CloudFront Cache
+      uses: chetan/invalidate-cloudfront-action@v2
+      env:
+        DISTRIBUTION: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}
+        PATHS: '/*'
+        AWS_REGION: ${{ secrets.AWS_REGION }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
