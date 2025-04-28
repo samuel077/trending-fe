@@ -3,7 +3,7 @@ name: Deploy Frontend to S3 and Invalidate CloudFront
 on:
   push:
     branches:
-      - master  # 你可以改成你自己的主分支名稱（例如 master）
+      - main  # 你可以改成你自己的主分支名稱（例如 master）
 
 jobs:
   deploy:
