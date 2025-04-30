@@ -86,6 +86,10 @@ function App() {
   }
 
   useEffect(() => {
+    setFocusedRepo(null);
+  }, [repos]);
+
+  useEffect(() => {
     if (step === "repos" && accessToken) {
       setLoading(true)
       fetch(`${API_BASE}/repos?page=${page}&size=${pageSize}`, {
@@ -124,7 +128,6 @@ function App() {
       <div className="max-w-md mx-auto bg-white shadow-lg rounded-xl p-6">
         <header className="flex justify-center px-4 py-5 mb-6 bg-blue-600 rounded-xl shadow text-white">
           <h1 className="text-xl font-semibold">Sam's Backend Lab 專案</h1>
-          
         </header>
 
         {step === "auth" && (
@@ -176,23 +179,30 @@ function App() {
               <p className="text-center">載入中...</p>
             ) : (
               <ul className="grid grid-cols-1 gap-4">
-                {repos.map(repo => (
-                  <li key={repo.fullName} className={`bg-white p-4 rounded-lg shadow transition-all border border-gray-200 overflow-hidden relative cursor-pointer group ${
-        focusedRepo === repo.fullName ? 'scale-105 z-10 ring-2 ring-blue-400' : focusedRepo ? 'blur-sm pointer-events-none' : ''
-      }`} onClick={() => setFocusedRepo(repo.fullName === focusedRepo ? null : repo.fullName)}>
-                    <div className="flex justify-between items-center">
-                      <a href={repo.url} className="text-lg font-bold text-blue-700 hover:underline flex items-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 3.75v16.5m-9-9h12.75" />
-                        </svg>
-                        {repo.fullName}
-                      </a>
-                      <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full font-mono">⭐ {repo.stars}</span>
-                    </div>
-                    <p className="mt-1 text-sm text-gray-600 truncate group-hover:whitespace-normal group-hover:overflow-visible group-hover:text-clip">{repo.description}</p>
-                    <p className="mt-1 text-xs text-gray-500 italic">{repo.language || 'Unknown language'}</p>
-                  </li>
-                ))}
+                {repos.map(repo => {
+                  const isRepoFocused = focusedRepo === repo.fullName;
+                  const isRepoInPage = repos.some(r => r.fullName === focusedRepo);
+                  const cardClass = isRepoFocused
+                    ? 'scale-105 z-10 ring-2 ring-blue-400'
+                    : isRepoInPage
+                    ? 'blur-sm pointer-events-none'
+                    : '';
+                  return (
+                    <li key={repo.fullName} className={`bg-white p-4 rounded-lg shadow transition-all border border-gray-200 overflow-hidden relative cursor-pointer group ${cardClass}`} onClick={() => setFocusedRepo(isRepoFocused ? null : repo.fullName)}>
+                      <div className="flex justify-between items-center">
+                        <a href={repo.url} className="text-lg font-bold text-blue-700 hover:underline flex items-center gap-2">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 3.75v16.5m-9-9h12.75" />
+                          </svg>
+                          {repo.fullName}
+                        </a>
+                        <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full font-mono">⭐ {repo.stars}</span>
+                      </div>
+                      <p className="mt-1 text-sm text-gray-600 truncate group-hover:whitespace-normal group-hover:overflow-visible group-hover:text-clip">{repo.description}</p>
+                      <p className="mt-1 text-xs text-gray-500 italic">{repo.language || 'Unknown language'}</p>
+                    </li>
+                  );
+                })}
               </ul>
             )}
 
@@ -200,7 +210,10 @@ function App() {
               {Array.from({ length: Math.ceil(totalCount / pageSize) }, (_, index) => (
                 <button
                   key={index}
-                  onClick={() => setPage(index)}
+                  onClick={() => {
+                    setFocusedRepo(null);
+                    setPage(index);
+                  }}
                   className={`px-3 py-1 rounded ${page === index ? "bg-blue-600 text-white" : "bg-white border border-blue-600 text-blue-600"}`}
                 >{index + 1}</button>
               ))}
